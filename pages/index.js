@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { subProvider } from '../web3/api';
 
 import { Link } from '../routes';
+import { checkAddress } from '@polkadot/util-crypto';
 
 const Networks = [
   {
@@ -77,6 +78,10 @@ const GetStakingInfo = () => {
     setResponse(proxyCall.method.toHex());
   };
 
+  const checkAddress = (account) => {
+    return ethers.utils.getAddress(account);
+  };
+
   return (
     <Container>
       <Head>
@@ -103,17 +108,23 @@ const GetStakingInfo = () => {
         <p>
           <Input
             fluid
-            label={{ content: 'Enter Staking Address:' }}
-            placeholder='Staking Address'
-            onChange={(input) => setStkAddress(input.target.value)}
+            label={{ content: 'Enter Proxied Address:' }}
+            placeholder='Address with funds...'
+            onChange={(input) => {
+              let address = checkAddress(input.target.value);
+              setStkAddress(address);
+            }}
           />
         </p>
         <p>
           <Input
             fluid
             label={{ content: 'Enter Collator Address:' }}
-            placeholder='Collator Address'
-            onChange={(input) => setColAddress(input.target.value)}
+            placeholder='Collator you want to stake...'
+            onChange={(input) => {
+              let address = checkAddress(input.target.value);
+              setColAddress(input.target.value);
+            }}
           />
         </p>
         <p>
@@ -121,7 +132,7 @@ const GetStakingInfo = () => {
             fluid
             labelPosition='right'
             type='text'
-            placeholder='Amount'
+            placeholder='Amount of tokens...'
             onChange={(input) => setAmount(input.target.value)}
           >
             <Label>Enter Staking Amount:</Label>
@@ -134,7 +145,7 @@ const GetStakingInfo = () => {
             fluid
             labelPosition='right'
             type='text'
-            placeholder='Amount'
+            placeholder='AutoCompound percentage...'
             onChange={(input) => setAutoCompound(input.target.value)}
           >
             <Label>Enter AutoCompound Percent:</Label>
@@ -143,7 +154,7 @@ const GetStakingInfo = () => {
           </Input>
         </p>
       </div>
-
+      <br />
       <Form onSubmit={() => calculate()}>
         <Button type='submit' disabled={!stkAddress || !colAddress || !amount} color='orange'>
           Calculate Data
