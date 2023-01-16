@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { Container, Menu, Dropdown, Input, Button, Label, Form } from 'semantic-ui-react';
 import Head from 'next/head';
 import { subProvider } from '../web3/api';
-
+import * as ethers from 'ethers';
 import { Link } from '../routes';
-import { checkAddress } from '@polkadot/util-crypto';
 
 const Networks = [
   {
@@ -156,7 +155,7 @@ const GetStakingInfo = () => {
       </div>
       <br />
       <Form onSubmit={() => calculate()}>
-        <Button type='submit' disabled={!stkAddress || !colAddress || !amount} color='orange'>
+        <Button type='submit' disabled={!stkAddress || !colAddress || !amount || !autoCompound} color='orange'>
           Calculate Data
         </Button>
       </Form>
