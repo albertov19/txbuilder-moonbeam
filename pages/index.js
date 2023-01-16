@@ -44,21 +44,23 @@ const GetStakingInfo = () => {
     const api = await subProvider(network);
 
     // Get Candidate Delegation Count
-    const colDelegationsCount = (await api.query.parachainStaking.candidateInfo(colAddress)).toHuman().delegationCount;
+    const colDelegationsCount = BigInt(
+      (await api.query.parachainStaking.candidateInfo(colAddress)).toHuman().delegationCount
+    );
 
     // Get Candidate Auto-Compounding Delegation Count
-    const autoCompoundingDelegationsCount = (
-      await api.query.parachainStaking.autoCompoundingDelegations(colAddress)
-    ).toHuman().length;
+    const autoCompoundingDelegationsCount = BigInt(
+      (await api.query.parachainStaking.autoCompoundingDelegations(colAddress)).toHuman().length
+    );
 
     // Get Your Delegations Count
     let delegationsCount;
     const delegatorInfo = await api.query.parachainStaking.delegatorState(stkAddress);
 
     if (delegatorInfo.toHuman()) {
-      delegationsCount = delegatorInfo.toHuman()['delegations'].length;
+      delegationsCount = BigInt(delegatorInfo.toHuman()['delegations'].length);
     } else {
-      delegationsCount = 0;
+      delegationsCount = 0n;
     }
 
     // Create Staking Call
@@ -66,9 +68,9 @@ const GetStakingInfo = () => {
       colAddress,
       amount,
       autoCompound,
-      colDelegationsCount + 10,
-      autoCompoundingDelegationsCount + 10,
-      delegationsCount + 10
+      colDelegationsCount + 10n,
+      autoCompoundingDelegationsCount + 10n,
+      delegationsCount + 10n
     );
 
     // Generate Proxy call
