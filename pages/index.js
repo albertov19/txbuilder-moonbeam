@@ -132,7 +132,13 @@ const GetStakingInfo = () => {
             labelPosition='right'
             type='text'
             placeholder='Amount of tokens...'
-            onChange={(input) => setAmount(input.target.value)}
+            onChange={(input) => {
+              let amount;
+              if (input.target.value) {
+                amount = ethers.utils.parseEther(input.target.value.toString()).toString();
+              }
+              setAmount(amount);
+            }}
           >
             <Label>Enter Staking Amount:</Label>
             <input />
