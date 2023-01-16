@@ -168,7 +168,7 @@ const GetStakingInfo = () => {
       <br />
       {response ? (
         <p>
-          URL: &nbsp;{' '}
+          URL:{' '}
           <a
             href={
               'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbeam.unitedbloc.com%3A3001#/extrinsics/decode/' +
@@ -177,16 +177,18 @@ const GetStakingInfo = () => {
             target='_blank'
           >
             {' '}
-            Polkadot.js Apps Moonbeam
-          </a>
+            Polkadot.js Apps Moonbeam URL
+          </a>{' '}
+          <br />- Proxied Account: {stkAddress} <br />- Collator: {colAddress} <br />- Staking Amount:
+          {ethers.utils.formatEther(amount)} GLMR <br />- Auto-Compound: {autoCompound}
         </p>
       ) : (
         ''
       )}
 
       <p>
-        Don't judge the code :) as it is for demostration purposes only. You can check the source code &nbsp;
-        <a href='https://github.com/albertov19/localAsset-dashboard' target='_blank'>
+        Don't judge the code :) as it is for demostration purposes only. You can check the source code{' '}
+        <a href='https://github.com/albertov19/GetStakingInfo-Moonbeam' target='_blank'>
           here
         </a>
       </p>
