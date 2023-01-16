@@ -99,48 +99,50 @@ const GetStakingInfo = () => {
           />
         </Menu.Item>
       </Menu>
-      <p style={{ width: '50%' }}>
-        <Input
-          fluid
-          label={{ content: 'Enter Staking Address:' }}
-          placeholder='Staking Address'
-          onChange={(input) => setStkAddress(input.target.value)}
-        />
-      </p>
-      <p style={{ width: '50%' }}>
-        <Input
-          fluid
-          label={{ content: 'Enter Collator Address:' }}
-          placeholder='Collator Address'
-          onChange={(input) => setColAddress(input.target.value)}
-        />
-      </p>
-      <p style={{ width: '50%' }}>
-        <Input
-          fluid
-          labelPosition='right'
-          type='text'
-          placeholder='Amount'
-          onChange={(input) => setAmount(input.target.value)}
-        >
-          <Label>Enter Staking Amount:</Label>
-          <input />
-          <Label>GLMR</Label>
-        </Input>
-      </p>
-      <p style={{ width: '50%' }}>
-        <Input
-          fluid
-          labelPosition='right'
-          type='text'
-          placeholder='Amount'
-          onChange={(input) => setAutoCompound(input.target.value)}
-        >
-          <Label>Enter AutoCompound Percent:</Label>
-          <input />
-          <Label>%</Label>
-        </Input>
-      </p>
+      <div style={{ width: '50%' }}>
+        <p>
+          <Input
+            fluid
+            label={{ content: 'Enter Staking Address:' }}
+            placeholder='Staking Address'
+            onChange={(input) => setStkAddress(input.target.value)}
+          />
+        </p>
+        <p>
+          <Input
+            fluid
+            label={{ content: 'Enter Collator Address:' }}
+            placeholder='Collator Address'
+            onChange={(input) => setColAddress(input.target.value)}
+          />
+        </p>
+        <p>
+          <Input
+            fluid
+            labelPosition='right'
+            type='text'
+            placeholder='Amount'
+            onChange={(input) => setAmount(input.target.value)}
+          >
+            <Label>Enter Staking Amount:</Label>
+            <input />
+            <Label>GLMR</Label>
+          </Input>
+        </p>
+        <p>
+          <Input
+            fluid
+            labelPosition='right'
+            type='text'
+            placeholder='Amount'
+            onChange={(input) => setAutoCompound(input.target.value)}
+          >
+            <Label>Enter AutoCompound Percent:</Label>
+            <input />
+            <Label>%</Label>
+          </Input>
+        </p>
+      </div>
 
       <Form onSubmit={() => calculate()}>
         <Button type='submit' disabled={!stkAddress || !colAddress || !amount} color='orange'>
