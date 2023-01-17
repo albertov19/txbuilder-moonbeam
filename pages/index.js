@@ -32,6 +32,7 @@ const GetStakingInfo = () => {
   const [colAddress, setColAddress] = useState();
   const [amount, setAmount] = useState();
   const [autoCompound, setAutoCompound] = useState();
+  const [calculatedData, setCalculatedData] = useState({ stkAddress: '', colAddress: '', amount: 0, autoCompound: 0 });
 
   const [response, setResponse] = useState('');
 
@@ -77,6 +78,9 @@ const GetStakingInfo = () => {
     const proxyCall = await api.tx.proxy.proxy(stkAddress, null, stakingCall);
 
     setResponse(proxyCall.method.toHex());
+
+    // Set Calculated Data
+    setCalculatedData({ colAddress, stkAddress, amount, autoCompound });
   };
 
   const checkAddress = (account) => {
@@ -86,14 +90,14 @@ const GetStakingInfo = () => {
   return (
     <Container>
       <Head>
-        <title>Staking Info</title>
+        <title>Proxy Staking/Voting Info</title>
         <link rel='icon' type='image/png' sizes='32x32' href='/favicon.png' />
         <link rel='stylesheet' href='//cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css' />
       </Head>
       <div style={{ paddingTop: '10px' }}></div>
       <Menu>
         <Link route='/'>
-          <a className='item'>Staking Info</a>
+          <a className='item'>Proxy Staking/Voting Info</a>
         </Link>
         <Menu.Item position='right'>
           <Dropdown
@@ -124,7 +128,7 @@ const GetStakingInfo = () => {
             placeholder='Collator you want to stake...'
             onChange={(input) => {
               let address = checkAddress(input.target.value);
-              setColAddress(input.target.value);
+              setColAddress(address);
             }}
           />
         </p>
@@ -181,8 +185,9 @@ const GetStakingInfo = () => {
             {' '}
             Polkadot.js Apps Moonbeam URL
           </a>{' '}
-          <br />- Proxied Account: {stkAddress} <br />- Collator: {colAddress} <br />- Staking Amount:
-          {ethers.utils.formatEther(amount)} GLMR <br />- Auto-Compound: {autoCompound}
+          <br />- Proxied Account: {calculatedData.stkAddress} <br />- Collator: {calculatedData.colAddress} <br />-
+          Staking Amount:
+          {ethers.utils.formatEther(calculatedData.amount)} GLMR <br />- Auto-Compound: {calculatedData.autoCompound}
         </p>
       ) : (
         ''
