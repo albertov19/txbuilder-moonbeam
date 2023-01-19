@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Menu, Dropdown, Input, Button, Label, Form } from 'semantic-ui-react';
+import { Container, Menu, Dropdown, Input, Button, Label, Form, Message } from 'semantic-ui-react';
 import Head from 'next/head';
 import { subProvider } from '../web3/api';
 import * as ethers from 'ethers';
@@ -11,18 +11,21 @@ const Networks = [
     text: 'Moonbeam',
     value: 'moonbeam',
     image: { avatar: true, src: 'moonbeam.png' },
+    token: 'GLMR',
   },
   {
     key: 'Moonriver',
     text: 'Moonriver',
     value: 'moonriver',
     image: { avatar: true, src: 'moonriver.png' },
+    token: 'MOVR',
   },
   {
     key: 'Moonbase Alpha',
     text: 'Moonbase Alpha',
     value: 'moonbase',
     image: { avatar: true, src: 'moonbase.png' },
+    token: 'DEV',
   },
 ];
 
@@ -44,19 +47,73 @@ const GetStakingInfo = () => {
 
   const [stakingCallData, setStakingCallData] = useState('');
   const [proxyCallData, setProxyCallData] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [tokenLabel, setTokenLabel] = useState('GLMR');
 
   const handleChange = (e, { value }) => {
     setNetwork(value);
+    setTokenLabel(Networks.find((network) => network.value === value).token);
   };
 
   const calculate = async () => {
+    setErrorMessage('');
+
     // Load Provider
     const api = await subProvider(network);
 
+    //Check Input
+    // Staking Address
+    let check = ethers.utils.isAddress(stkAddress);
+    if (!check) {
+      setErrorMessage('Address with funds not valid!');
+      return;
+    }
+
+    // Collator Address
+    check = ethers.utils.isAddress(colAddress);
+    if (!check) {
+      setErrorMessage('Collator address not valid!');
+      return;
+    }
+
+    // Balance
+    let balance = (await api.query.system.account(stkAddress)).toHuman().data;
+    check =
+      BigInt(balance.free.replaceAll(',', '')) -
+        BigInt(balance.miscFrozen.replaceAll(',', '')) -
+        BigInt(100000000000000000) >
+      BigInt(amount);
+    if (!check) {
+      setErrorMessage('Not enough balance!');
+      return;
+    }
+
+    // AutoCompound Value between 0-100
+    check = autoCompound >= 0 ? (autoCompound <= 100 ? true : false) : false;
+    if (!check) {
+      setErrorMessage('AutoCompound must be between 0 and 100!');
+      return;
+    }
+
+    // Check if Candidate is Collator
+    const candidatePool = (await api.query.parachainStaking.candidatePool()).toHuman();
+    let isCandidate;
+    candidatePool.map((candidate) => {
+      if (colAddress === candidate.owner) {
+        isCandidate = true;
+      }
+    });
+
     // Get Candidate Delegation Count
-    const candidateDelegationCount = BigInt(
-      (await api.query.parachainStaking.candidateInfo(colAddress)).toHuman().delegationCount
-    );
+    let candidateDelegationCount;
+    if (isCandidate) {
+      candidateDelegationCount = BigInt(
+        (await api.query.parachainStaking.candidateInfo(colAddress)).toHuman().delegationCount
+      );
+    } else {
+      setErrorMessage('Collator is not a candidate in this network!');
+      return;
+    }
 
     // Get Candidate Auto-Compounding Delegation Count
     const candidateAutoCompoundingDelegationCount = BigInt(
@@ -103,7 +160,11 @@ const GetStakingInfo = () => {
   };
 
   const checkAddress = (account) => {
-    return ethers.utils.getAddress(account);
+    if (ethers.utils.isAddress(account)) {
+      return ethers.utils.getAddress(account);
+    } else {
+      return account;
+    }
   };
 
   return (
@@ -168,7 +229,7 @@ const GetStakingInfo = () => {
           >
             <Label>Enter Staking Amount:</Label>
             <input />
-            <Label>GLMR</Label>
+            <Label>{tokenLabel}</Label>
           </Input>
         </p>
         <p>
@@ -177,7 +238,7 @@ const GetStakingInfo = () => {
             labelPosition='right'
             type='text'
             placeholder='AutoCompound percentage...'
-            onChange={(input) => setAutoCompound(input.target.value)}
+            onChange={(input) => setAutoCompound(Math.round(input.target.value))}
           >
             <Label>Enter AutoCompound Percent:</Label>
             <input />
@@ -186,10 +247,11 @@ const GetStakingInfo = () => {
         </p>
       </div>
       <br />
-      <Form onSubmit={() => calculate()}>
+      <Form onSubmit={() => calculate()} error={!!errorMessage}>
         <Button type='submit' disabled={!stkAddress || !colAddress || !amount || !autoCompound} color='orange'>
           Calculate Data
         </Button>
+        <Message style={{ width: '50%' }} error header='Oops!' content={errorMessage} />
       </Form>
       <br />
       {stakingCallData && proxyCallData ? (
@@ -221,7 +283,9 @@ const GetStakingInfo = () => {
           <ul>
             <li>Account with Funds: {stakingCall.stkAddress}</li>
             <li>Collator: {stakingCall.colAddress} </li>
-            <li>Staking Amount: {ethers.utils.formatEther(stakingCall.amount)} GLMR</li>
+            <li>
+              Staking Amount: {ethers.utils.formatEther(stakingCall.amount)} {tokenLabel}
+            </li>
             <li>Auto-Compound: {stakingCall.autoCompound}</li>
             <li>Candidate Delegation Count: {stakingCall.candidateDelegationCount.toString()}</li>
             <li>
