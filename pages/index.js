@@ -36,6 +36,7 @@ const GetStakingInfo = () => {
   const [amount, setAmount] = useState();
   const [autoCompound, setAutoCompound] = useState();
   const [stakingCall, setStakingCall] = useState({
+    targetNetwork: '',
     stkAddress: '',
     colAddress: '',
     amount: 0,
@@ -43,6 +44,7 @@ const GetStakingInfo = () => {
     candidateDelegationCount: 0,
     candidateAutoCompoundingDelegationCount: 0,
     delegationCount: 0,
+    tokenLabel: '',
   });
 
   const [stakingCallData, setStakingCallData] = useState('');
@@ -52,7 +54,7 @@ const GetStakingInfo = () => {
 
   const handleChange = (e, { value }) => {
     setNetwork(value);
-    setTokenLabel(Networks.find((network) => network.value === value).token);
+    setTokenLabel(Networks.find((network) => network.value === value));
   };
 
   const calculate = async () => {
@@ -60,6 +62,7 @@ const GetStakingInfo = () => {
 
     // Load Provider
     const api = await subProvider(network);
+    setTokenLabel(Networks.find((data) => data.value === network).token);
 
     //Check Input
     // Staking Address
@@ -78,6 +81,7 @@ const GetStakingInfo = () => {
 
     // Balance
     let balance = (await api.query.system.account(stkAddress)).toHuman().data;
+    console.log(balance);
     check =
       BigInt(balance.free.replaceAll(',', '')) -
         BigInt(balance.miscFrozen.replaceAll(',', '')) -
@@ -149,6 +153,7 @@ const GetStakingInfo = () => {
 
     // Set Calculated Data
     setStakingCall({
+      network: Networks.find((data) => data.value === network).key,
       colAddress,
       stkAddress,
       amount,
@@ -156,6 +161,7 @@ const GetStakingInfo = () => {
       candidateDelegationCount,
       candidateAutoCompoundingDelegationCount,
       delegationCount,
+      tokenLabel,
     });
   };
 
@@ -281,10 +287,11 @@ const GetStakingInfo = () => {
           </a>
           <br />
           <ul>
+            <li>{stakingCall.network}</li>
             <li>Account with Funds: {stakingCall.stkAddress}</li>
             <li>Collator: {stakingCall.colAddress} </li>
             <li>
-              Staking Amount: {ethers.utils.formatEther(stakingCall.amount)} {tokenLabel}
+              Staking Amount: {ethers.utils.formatEther(stakingCall.amount)} {stakingCall.tokenLabel}
             </li>
             <li>Auto-Compound: {stakingCall.autoCompound}</li>
             <li>Candidate Delegation Count: {stakingCall.candidateDelegationCount.toString()}</li>
