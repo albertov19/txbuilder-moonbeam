@@ -32,9 +32,18 @@ const GetStakingInfo = () => {
   const [colAddress, setColAddress] = useState();
   const [amount, setAmount] = useState();
   const [autoCompound, setAutoCompound] = useState();
-  const [calculatedData, setCalculatedData] = useState({ stkAddress: '', colAddress: '', amount: 0, autoCompound: 0 });
+  const [stakingCall, setStakingCall] = useState({
+    stkAddress: '',
+    colAddress: '',
+    amount: 0,
+    autoCompound: 0,
+    candidateDelegationCount: 0,
+    candidateAutoCompoundingDelegationCount: 0,
+    delegationCount: 0,
+  });
 
-  const [response, setResponse] = useState('');
+  const [stakingCallData, setStakingCallData] = useState('');
+  const [proxyCallData, setProxyCallData] = useState('');
 
   const handleChange = (e, { value }) => {
     setNetwork(value);
@@ -45,23 +54,23 @@ const GetStakingInfo = () => {
     const api = await subProvider(network);
 
     // Get Candidate Delegation Count
-    const colDelegationsCount = BigInt(
+    const candidateDelegationCount = BigInt(
       (await api.query.parachainStaking.candidateInfo(colAddress)).toHuman().delegationCount
     );
 
     // Get Candidate Auto-Compounding Delegation Count
-    const autoCompoundingDelegationsCount = BigInt(
+    const candidateAutoCompoundingDelegationCount = BigInt(
       (await api.query.parachainStaking.autoCompoundingDelegations(colAddress)).toHuman().length
     );
 
     // Get Your Delegations Count
-    let delegationsCount;
+    let delegationCount;
     const delegatorInfo = await api.query.parachainStaking.delegatorState(stkAddress);
 
     if (delegatorInfo.toHuman()) {
-      delegationsCount = BigInt(delegatorInfo.toHuman()['delegations'].length);
+      delegationCount = BigInt(delegatorInfo.toHuman()['delegations'].length);
     } else {
-      delegationsCount = 0n;
+      delegationCount = 0n;
     }
 
     // Create Staking Call
@@ -69,18 +78,28 @@ const GetStakingInfo = () => {
       colAddress,
       amount,
       autoCompound,
-      colDelegationsCount + 10n,
-      autoCompoundingDelegationsCount + 10n,
-      delegationsCount + 10n
+      candidateDelegationCount + 10n,
+      candidateAutoCompoundingDelegationCount + 10n,
+      delegationCount + 10n
     );
+
+    setStakingCallData(stakingCall.method.toHex());
 
     // Generate Proxy call
     const proxyCall = await api.tx.proxy.proxy(stkAddress, null, stakingCall);
 
-    setResponse(proxyCall.method.toHex());
+    setProxyCallData(proxyCall.method.toHex());
 
     // Set Calculated Data
-    setCalculatedData({ colAddress, stkAddress, amount, autoCompound });
+    setStakingCall({
+      colAddress,
+      stkAddress,
+      amount,
+      autoCompound,
+      candidateDelegationCount,
+      candidateAutoCompoundingDelegationCount,
+      delegationCount,
+    });
   };
 
   const checkAddress = (account) => {
@@ -90,14 +109,14 @@ const GetStakingInfo = () => {
   return (
     <Container>
       <Head>
-        <title>Proxy Staking/Voting Info</title>
+        <title>Transaction Builder</title>
         <link rel='icon' type='image/png' sizes='32x32' href='/favicon.png' />
         <link rel='stylesheet' href='//cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css' />
       </Head>
       <div style={{ paddingTop: '10px' }}></div>
       <Menu>
         <Link route='/'>
-          <a className='item'>Proxy Staking/Voting Info</a>
+          <a className='item'>Transaction Builder</a>
         </Link>
         <Menu.Item position='right'>
           <Dropdown
@@ -110,11 +129,12 @@ const GetStakingInfo = () => {
         </Menu.Item>
       </Menu>
       <div style={{ width: '50%' }}>
+        <h3>Staking Transaction</h3>
         <p>
           <Input
             fluid
-            label={{ content: 'Enter Proxied Address:' }}
-            placeholder='Address with funds...'
+            label={{ content: 'Account with Funds:' }}
+            placeholder='Address with the tokens...'
             onChange={(input) => {
               let address = checkAddress(input.target.value);
               setStkAddress(address);
@@ -172,22 +192,43 @@ const GetStakingInfo = () => {
         </Button>
       </Form>
       <br />
-      {response ? (
+      {stakingCallData && proxyCallData ? (
         <p>
-          URL:{' '}
+          Staking Call URL:{' '}
           <a
             href={
               'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbeam.unitedbloc.com%3A3001#/extrinsics/decode/' +
-              response
+              stakingCallData
             }
             target='_blank'
           >
             {' '}
-            Polkadot.js Apps Moonbeam URL
-          </a>{' '}
-          <br />- Proxied Account: {calculatedData.stkAddress} <br />- Collator: {calculatedData.colAddress} <br />-
-          Staking Amount:
-          {ethers.utils.formatEther(calculatedData.amount)} GLMR <br />- Auto-Compound: {calculatedData.autoCompound}
+            Staking Polkadot.js Apps Moonbeam URL
+          </a>
+          <br />
+          Proxy Call URL:{' '}
+          <a
+            href={
+              'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbeam.unitedbloc.com%3A3001#/extrinsics/decode/' +
+              proxyCallData
+            }
+            target='_blank'
+          >
+            {' '}
+            Proxy Polkadot.js Apps Moonbeam URL
+          </a>
+          <br />
+          <ul>
+            <li>Account with Funds: {stakingCall.stkAddress}</li>
+            <li>Collator: {stakingCall.colAddress} </li>
+            <li>Staking Amount: {ethers.utils.formatEther(stakingCall.amount)} GLMR</li>
+            <li>Auto-Compound: {stakingCall.autoCompound}</li>
+            <li>Candidate Delegation Count: {stakingCall.candidateDelegationCount.toString()}</li>
+            <li>
+              Candidate AutoCompound Delegation Count: {stakingCall.candidateAutoCompoundingDelegationCount.toString()}
+            </li>
+            <li>Delegation Count: {stakingCall.delegationCount.toString()}</li>
+          </ul>
         </p>
       ) : (
         ''
