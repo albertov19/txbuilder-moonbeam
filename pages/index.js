@@ -54,7 +54,7 @@ const GetStakingInfo = () => {
 
   const handleChange = (e, { value }) => {
     setNetwork(value);
-    setTokenLabel(Networks.find((network) => network.value === value));
+    setTokenLabel(Networks.find((network) => network.value === value).token);
   };
 
   const calculate = async () => {
@@ -180,21 +180,22 @@ const GetStakingInfo = () => {
         <link rel='icon' type='image/png' sizes='32x32' href='/favicon.png' />
         <link rel='stylesheet' href='//cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css' />
       </Head>
-      <div style={{ paddingTop: '10px' }}></div>
-      <Menu>
-        <Link route='/'>
-          <a className='item'>Transaction Builder</a>
-        </Link>
-        <Menu.Item position='right'>
-          <Dropdown
-            placeholder='Select Network'
-            selection
-            options={Networks}
-            onChange={handleChange}
-            defaultValue={Networks[0].value}
-          />
-        </Menu.Item>
-      </Menu>
+      <div style={{ paddingTop: '10px' }}>
+        <Menu>
+          <Link route='/'>
+            <a className='item'>Transaction Builder</a>
+          </Link>
+          <Menu.Item position='right'>
+            <Dropdown
+              placeholder='Select Network'
+              selection
+              options={Networks}
+              onChange={handleChange}
+              defaultValue={Networks[0].value}
+            />
+          </Menu.Item>
+        </Menu>
+      </div>
       <div style={{ width: '50%' }}>
         <h3>Staking Transaction</h3>
         <p>
