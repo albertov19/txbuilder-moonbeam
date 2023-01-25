@@ -12,6 +12,7 @@ const Networks = [
     value: 'moonbeam',
     image: { avatar: true, src: 'moonbeam.png' },
     token: 'GLMR',
+    URL: 'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbeam.unitedbloc.com%3A3001',
   },
   {
     key: 'Moonriver',
@@ -19,6 +20,7 @@ const Networks = [
     value: 'moonriver',
     image: { avatar: true, src: 'moonriver.png' },
     token: 'MOVR',
+    URL: 'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonriver.unitedbloc.com%3A2001',
   },
   {
     key: 'Moonbase Alpha',
@@ -26,6 +28,7 @@ const Networks = [
     value: 'moonbase',
     image: { avatar: true, src: 'moonbase.png' },
     token: 'DEV',
+    URL: 'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbase.unitedbloc.com%3A1001',
   },
 ];
 
@@ -50,7 +53,8 @@ const GetStakingInfo = () => {
   const [stakingCallData, setStakingCallData] = useState('');
   const [proxyCallData, setProxyCallData] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [tokenLabel, setTokenLabel] = useState('GLMR');
+  const [tokenLabel, setTokenLabel] = useState(Networks[0].token);
+  const [URL, setURL] = useState(Networks[0].URL);
 
   const handleChange = (e, { value }) => {
     setNetwork(value);
@@ -63,6 +67,7 @@ const GetStakingInfo = () => {
     // Load Provider
     const api = await subProvider(network);
     setTokenLabel(Networks.find((data) => data.value === network).token);
+    setURL(Networks.find((data) => data.value === network).URL);
 
     //Check Input
     // Staking Address
@@ -264,25 +269,13 @@ const GetStakingInfo = () => {
       {stakingCallData && proxyCallData ? (
         <p>
           Staking Call URL:{' '}
-          <a
-            href={
-              'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbeam.unitedbloc.com%3A3001#/extrinsics/decode/' +
-              stakingCallData
-            }
-            target='_blank'
-          >
+          <a href={URL + '#/extrinsics/decode/' + stakingCallData} target='_blank'>
             {' '}
             Staking Polkadot.js Apps Moonbeam URL
           </a>
           <br />
           Proxy Call URL:{' '}
-          <a
-            href={
-              'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbeam.unitedbloc.com%3A3001#/extrinsics/decode/' +
-              proxyCallData
-            }
-            target='_blank'
-          >
+          <a href={URL + '#/extrinsics/decode/' + proxyCallData} target='_blank'>
             {' '}
             Proxy Polkadot.js Apps Moonbeam URL
           </a>
