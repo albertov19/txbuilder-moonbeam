@@ -1,73 +1,42 @@
-import React, { useState } from 'react';
-import { Container, Menu, Dropdown, Input, Button, Label, Form, Message } from 'semantic-ui-react';
-import Head from 'next/head';
+import React, { useState, useEffect } from 'react';
+import { Container, Input, Button, Label, Form, Message } from 'semantic-ui-react';
 import { subProvider } from '../web3/api';
 import * as ethers from 'ethers';
-import { Link } from '../routes';
 
-const Networks = [
-  {
-    key: 'Moonbeam',
-    text: 'Moonbeam',
-    value: 'moonbeam',
-    image: { avatar: true, src: 'moonbeam.png' },
-    token: 'GLMR',
-    URL: 'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbeam.unitedbloc.com%3A3001',
-  },
-  {
-    key: 'Moonriver',
-    text: 'Moonriver',
-    value: 'moonriver',
-    image: { avatar: true, src: 'moonriver.png' },
-    token: 'MOVR',
-    URL: 'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonriver.unitedbloc.com%3A2001',
-  },
-  {
-    key: 'Moonbase Alpha',
-    text: 'Moonbase Alpha',
-    value: 'moonbase',
-    image: { avatar: true, src: 'moonbase.png' },
-    token: 'DEV',
-    URL: 'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbase.unitedbloc.com%3A1001',
-  },
-];
-
-const GetStakingInfo = () => {
-  const [network, setNetwork] = useState('moonbeam');
-  const [stkAddress, setStkAddress] = useState();
-  const [colAddress, setColAddress] = useState();
-  const [amount, setAmount] = useState();
-  const [autoCompound, setAutoCompound] = useState();
+const StakingBuilder = ({ network }) => {
+  const [stkAddress, setStkAddress] = useState('');
+  const [colAddress, setColAddress] = useState('');
+  const [amount, setAmount] = useState(BigInt(0));
+  const [autoCompound, setAutoCompound] = useState(BigInt(0));
   const [stakingCall, setStakingCall] = useState({
     targetNetwork: '',
     stkAddress: '',
     colAddress: '',
-    amount: 0,
-    autoCompound: 0,
-    candidateDelegationCount: 0,
-    candidateAutoCompoundingDelegationCount: 0,
-    delegationCount: 0,
+    amount: BigInt(0),
+    autoCompound: BigInt(0),
+    candidateDelegationCount: BigInt(0),
+    candidateAutoCompoundingDelegationCount: BigInt(0),
+    delegationCount: BigInt(0),
     tokenLabel: '',
   });
 
   const [stakingCallData, setStakingCallData] = useState('');
   const [proxyCallData, setProxyCallData] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [tokenLabel, setTokenLabel] = useState(Networks[0].token);
-  const [URL, setURL] = useState(Networks[0].URL);
+  const [tokenLabel, setTokenLabel] = useState(network.token);
+  const [URL, setURL] = useState(network.url);
 
-  const handleChange = (e, { value }) => {
-    setNetwork(value);
-    setTokenLabel(Networks.find((network) => network.value === value).token);
-  };
+  useEffect(() => {
+    setTokenLabel(network.token);
+  }, []);
 
   const calculate = async () => {
     setErrorMessage('');
 
     // Load Provider
-    const api = await subProvider(network);
-    setTokenLabel(Networks.find((data) => data.value === network).token);
-    setURL(Networks.find((data) => data.value === network).URL);
+    const api = await subProvider(network.value);
+    setTokenLabel(network.token);
+    setURL(network.url);
 
     //Check Input
     // Staking Address
@@ -86,7 +55,6 @@ const GetStakingInfo = () => {
 
     // Balance
     let balance = (await api.query.system.account(stkAddress)).toHuman().data;
-    console.log(balance);
     check =
       BigInt(balance.free.replaceAll(',', '')) -
         BigInt(balance.miscFrozen.replaceAll(',', '')) -
@@ -136,7 +104,7 @@ const GetStakingInfo = () => {
     if (delegatorInfo.toHuman()) {
       delegationCount = BigInt(delegatorInfo.toHuman()['delegations'].length);
     } else {
-      delegationCount = 0n;
+      delegationCount = BigInt(0);
     }
 
     // Create Staking Call
@@ -144,9 +112,9 @@ const GetStakingInfo = () => {
       colAddress,
       amount,
       autoCompound,
-      candidateDelegationCount + 10n,
-      candidateAutoCompoundingDelegationCount + 10n,
-      delegationCount + 10n
+      candidateDelegationCount + BigInt(10),
+      candidateAutoCompoundingDelegationCount + BigInt(10),
+      delegationCount + BigInt(10)
     );
 
     setStakingCallData(stakingCall.method.toHex());
@@ -158,7 +126,7 @@ const GetStakingInfo = () => {
 
     // Set Calculated Data
     setStakingCall({
-      network: Networks.find((data) => data.value === network).key,
+      targetNetwork: network.key,
       colAddress,
       stkAddress,
       amount,
@@ -180,83 +148,59 @@ const GetStakingInfo = () => {
 
   return (
     <Container>
-      <Head>
-        <title>Transaction Builder</title>
-        <link rel='icon' type='image/png' sizes='32x32' href='/favicon.png' />
-        <link rel='stylesheet' href='//cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css' />
-      </Head>
-      <div style={{ paddingTop: '10px' }}>
-        <Menu>
-          <Link route='/'>
-            <a className='item'>Transaction Builder</a>
-          </Link>
-          <Menu.Item position='right'>
-            <Dropdown
-              placeholder='Select Network'
-              selection
-              options={Networks}
-              onChange={handleChange}
-              defaultValue={Networks[0].value}
-            />
-          </Menu.Item>
-        </Menu>
-      </div>
       <div style={{ width: '50%' }}>
         <h3>Staking Transaction</h3>
-        <p>
-          <Input
-            fluid
-            label={{ content: 'Account with Funds:' }}
-            placeholder='Address with the tokens...'
-            onChange={(input) => {
-              let address = checkAddress(input.target.value);
-              setStkAddress(address);
-            }}
-          />
-        </p>
-        <p>
-          <Input
-            fluid
-            label={{ content: 'Enter Collator Address:' }}
-            placeholder='Collator you want to stake...'
-            onChange={(input) => {
-              let address = checkAddress(input.target.value);
-              setColAddress(address);
-            }}
-          />
-        </p>
-        <p>
-          <Input
-            fluid
-            labelPosition='right'
-            type='text'
-            placeholder='Amount of tokens...'
-            onChange={(input) => {
-              let amount;
-              if (input.target.value) {
-                amount = ethers.utils.parseEther(input.target.value.toString()).toString();
-              }
-              setAmount(amount);
-            }}
-          >
-            <Label>Enter Staking Amount:</Label>
-            <input />
-            <Label>{tokenLabel}</Label>
-          </Input>
-        </p>
-        <p>
-          <Input
-            fluid
-            labelPosition='right'
-            type='text'
-            placeholder='AutoCompound percentage...'
-            onChange={(input) => setAutoCompound(Math.round(input.target.value))}
-          >
-            <Label>Enter AutoCompound Percent:</Label>
-            <input />
-            <Label>%</Label>
-          </Input>
-        </p>
+        <Input
+          fluid
+          label={{ content: 'Account with Funds:' }}
+          placeholder='Address with the tokens...'
+          onChange={(input) => {
+            let address = checkAddress(input.target.value);
+            setStkAddress(address);
+          }}
+        />
+        <br />
+        <Input
+          fluid
+          label={{ content: 'Enter Collator Address:' }}
+          placeholder='Collator you want to stake...'
+          onChange={(input) => {
+            let address = checkAddress(input.target.value);
+            setColAddress(address);
+          }}
+        />
+        <br />
+
+        <Input
+          fluid
+          labelPosition='right'
+          type='text'
+          placeholder='Amount of tokens...'
+          onChange={(input) => {
+            let amount;
+            if (input.target.value) {
+              amount = ethers.utils.parseEther(input.target.value.toString()).toString();
+            }
+            setAmount(amount);
+          }}
+        >
+          <Label>Enter Staking Amount:</Label>
+          <input />
+          <Label>{tokenLabel}</Label>
+        </Input>
+        <br />
+
+        <Input
+          fluid
+          labelPosition='right'
+          type='text'
+          placeholder='AutoCompound percentage...'
+          onChange={(input) => setAutoCompound(BigInt(Math.round(Number(input.target.value))))}
+        >
+          <Label>Enter AutoCompound Percent:</Label>
+          <input />
+          <Label>%</Label>
+        </Input>
       </div>
       <br />
       <Form onSubmit={() => calculate()} error={!!errorMessage}>
@@ -267,7 +211,7 @@ const GetStakingInfo = () => {
       </Form>
       <br />
       {stakingCallData && proxyCallData ? (
-        <p>
+        <div>
           Staking Call URL:{' '}
           <a href={URL + '#/extrinsics/decode/' + stakingCallData} target='_blank'>
             {' '}
@@ -281,7 +225,7 @@ const GetStakingInfo = () => {
           </a>
           <br />
           <ul>
-            <li>{stakingCall.network}</li>
+            <li>{stakingCall.targetNetwork}</li>
             <li>Account with Funds: {stakingCall.stkAddress}</li>
             <li>Collator: {stakingCall.colAddress} </li>
             <li>
@@ -294,19 +238,12 @@ const GetStakingInfo = () => {
             </li>
             <li>Delegation Count: {stakingCall.delegationCount.toString()}</li>
           </ul>
-        </p>
+        </div>
       ) : (
         ''
       )}
-
-      <p>
-        Don't judge the code :) as it is for demostration purposes only. You can check the source code{' '}
-        <a href='https://github.com/albertov19/GetStakingInfo-Moonbeam' target='_blank'>
-          here
-        </a>
-      </p>
     </Container>
   );
 };
 
-export default GetStakingInfo;
+export default StakingBuilder;

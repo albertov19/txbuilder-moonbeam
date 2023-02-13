@@ -28,5 +28,9 @@
   },
   "resolutions": {
     "terser": "3.14.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.0.28",
+    "typescript": "4.9.5"
   }
 }
