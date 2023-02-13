@@ -54,7 +54,7 @@ const StakingBuilder = ({ network }) => {
     }
 
     // Balance
-    let balance = (await api.query.system.account(stkAddress)).toHuman().data;
+    let balance = ((await api.query.system.account(stkAddress)) as any).toHuman().data;
     check =
       BigInt(balance.free.replaceAll(',', '')) -
         BigInt(balance.miscFrozen.replaceAll(',', '')) -
@@ -73,7 +73,7 @@ const StakingBuilder = ({ network }) => {
     }
 
     // Check if Candidate is Collator
-    const candidatePool = (await api.query.parachainStaking.candidatePool()).toHuman();
+    const candidatePool = ((await api.query.parachainStaking.candidatePool()) as any).toHuman();
     let isCandidate;
     candidatePool.map((candidate) => {
       if (colAddress === candidate.owner) {
@@ -85,7 +85,7 @@ const StakingBuilder = ({ network }) => {
     let candidateDelegationCount;
     if (isCandidate) {
       candidateDelegationCount = BigInt(
-        (await api.query.parachainStaking.candidateInfo(colAddress)).toHuman().delegationCount
+        ((await api.query.parachainStaking.candidateInfo(colAddress)) as any).toHuman().delegationCount
       );
     } else {
       setErrorMessage('Collator is not a candidate in this network!');
@@ -94,7 +94,7 @@ const StakingBuilder = ({ network }) => {
 
     // Get Candidate Auto-Compounding Delegation Count
     const candidateAutoCompoundingDelegationCount = BigInt(
-      (await api.query.parachainStaking.autoCompoundingDelegations(colAddress)).toHuman().length
+      ((await api.query.parachainStaking.autoCompoundingDelegations(colAddress)) as any).toHuman().length
     );
 
     // Get Your Delegations Count
@@ -231,7 +231,7 @@ const StakingBuilder = ({ network }) => {
             <li>
               Staking Amount: {ethers.utils.formatEther(stakingCall.amount)} {stakingCall.tokenLabel}
             </li>
-            <li>Auto-Compound: {stakingCall.autoCompound}</li>
+            <li> Auto-Compound: {stakingCall.targetNetwork} </li>
             <li>Candidate Delegation Count: {stakingCall.candidateDelegationCount.toString()}</li>
             <li>
               Candidate AutoCompound Delegation Count: {stakingCall.candidateAutoCompoundingDelegationCount.toString()}

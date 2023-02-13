@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Container, Menu, Dropdown } from 'semantic-ui-react';
 import Head from 'next/head';
+import Link from 'next/link';
 
-import { Link } from '../routes';
 import StakingBuilder from '../components/staking';
 
 const networks = [
@@ -48,7 +48,7 @@ const TxBuilder = () => {
       </Head>
       <div style={{ paddingTop: '10px' }}>
         <Menu>
-          <Link route='/'>
+          <Link href='/'>
             <a className='item'>Transaction Builder</a>
           </Link>
           <Menu.Item position='right'>
