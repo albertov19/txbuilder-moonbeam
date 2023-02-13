@@ -231,7 +231,7 @@ const StakingBuilder = ({ network }) => {
             <li>
               Staking Amount: {ethers.utils.formatEther(stakingCall.amount)} {stakingCall.tokenLabel}
             </li>
-            <li> Auto-Compound: {stakingCall.targetNetwork} </li>
+            <li> Auto-Compound: {stakingCall.autoCompound.toString()} </li>
             <li>Candidate Delegation Count: {stakingCall.candidateDelegationCount.toString()}</li>
             <li>
               Candidate AutoCompound Delegation Count: {stakingCall.candidateAutoCompoundingDelegationCount.toString()}
