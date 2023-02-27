@@ -662,7 +662,7 @@ const StakingBuilder = ({ network }) => {
                   value='increase'
                   checked={stkOption === 'increase'}
                   onChange={(e, data) => {
-                    setStkOption(data.value);
+                    setStkOption(String(data.value));
                     setAutoCompound(BigInt(0));
                   }}
                 />
@@ -676,7 +676,7 @@ const StakingBuilder = ({ network }) => {
                   name='checkboxRadioGroup'
                   value='decrease'
                   checked={stkOption === 'decrease'}
-                  onChange={(e, data) => setStkOption(data.value)}
+                  onChange={(e, data) => setStkOption(String(data.value))}
                 />
               </Form.Field>
             </GridColumn>
@@ -688,7 +688,7 @@ const StakingBuilder = ({ network }) => {
                   name='checkboxRadioGroup'
                   value='revoke'
                   checked={stkOption === 'revoke'}
-                  onChange={(e, data) => setStkOption(data.value)}
+                  onChange={(e, data) => setStkOption(String(data.value))}
                 />
               </Form.Field>
             </GridColumn>
@@ -700,7 +700,7 @@ const StakingBuilder = ({ network }) => {
                   name='checkboxRadioGroup'
                   value='execute'
                   checked={stkOption === 'execute'}
-                  onChange={(e, data) => setStkOption(data.value)}
+                  onChange={(e, data) => setStkOption(String(data.value))}
                 />
               </Form.Field>
             </GridColumn>
