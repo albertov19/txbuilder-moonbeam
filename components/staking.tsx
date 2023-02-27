@@ -644,11 +644,7 @@ const StakingBuilder = ({ network }) => {
                   value='stake'
                   checked={stkOption === 'stake'}
                   onChange={(e, data) => {
-                    setStkOption(data.value);
-                    console.log(stkAddress);
-                    console.log(colAddress);
-                    console.log(amount);
-                    console.log(autoCompound);
+                    setStkOption(String(data.value));
                   }}
                 />
               </Form.Field>
