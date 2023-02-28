@@ -30,7 +30,7 @@ const StakingBuilder = ({ network }) => {
 
   useEffect(() => {
     setTokenLabel(network.token);
-  }, []);
+  }, [network]);
 
   const calculate = async () => {
     setErrorMessage('');
@@ -247,28 +247,27 @@ const StakingBuilder = ({ network }) => {
       return;
     }
 
-    // Balance
-    let balance = ((await api.query.system.account(stkAddress)) as any).toHuman().data;
-    check =
-      BigInt(balance.free.replaceAll(',', '')) -
-        BigInt(balance.miscFrozen.replaceAll(',', '')) -
-        BigInt(100000000000000000) >
-      BigInt(amount);
-    if (!check) {
-      setErrorMessage('Not enough balance!');
-      return;
-    }
-
     // Check if you are Staking to that collator
     const candidatesStaked = ((await api.query.parachainStaking.delegatorState(stkAddress)) as any).toHuman();
     let isStaked;
+    let balance;
     candidatesStaked.delegations.map((candidate) => {
       if (colAddress === candidate.owner) {
         isStaked = true;
+        balance = BigInt(candidate.amount.replaceAll(',', ''));
       }
     });
+
+    // Staking related errors
     if (!isStaked) {
       setErrorMessage("You can't decrease to a collator you are not staking!");
+      return;
+    }
+
+    // Balance
+    check = balance > BigInt(amount);
+    if (!check) {
+      setErrorMessage('You are decreasing more than what you have staked!');
       return;
     }
 
