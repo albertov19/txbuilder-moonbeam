@@ -50,6 +50,8 @@ const StakingBuilder = ({ network }) => {
       await calculateRevoke(api);
     } else if (stkOption == 'execute') {
       await calculateExecute(api);
+    } else if (stkOption == 'cancel') {
+      await calculateCancel(api);
     }
   };
 
@@ -115,10 +117,20 @@ const StakingBuilder = ({ network }) => {
 
     // Get Your Delegations Count
     let delegationCount;
-    const delegatorInfo = await api.query.parachainStaking.delegatorState(stkAddress);
+    const delegatorInfo = ((await api.query.parachainStaking.delegatorState(stkAddress)) as any).toHuman();
 
-    if (delegatorInfo.toHuman()) {
-      delegationCount = BigInt(delegatorInfo.toHuman()['delegations'].length);
+    if (delegatorInfo) {
+      delegationCount = BigInt(delegatorInfo['delegations'].length);
+
+      // Ensure Candidate is not Being Delegated
+      delegatorInfo.delegations.map((delegation) => {
+        console.log(delegation);
+
+        if (delegation.owner == colAddress) {
+          setErrorMessage('You are already staking to this collator, use INCREASE instead!');
+          return;
+        }
+      });
     } else {
       delegationCount = BigInt(0);
     }
@@ -416,6 +428,69 @@ const StakingBuilder = ({ network }) => {
     });
   };
 
+  const calculateCancel = async (api) => {
+    let autoCompound = BigInt(0);
+    let candidateDelegationCount = BigInt(0);
+    let candidateAutoCompoundingDelegationCount = BigInt(0);
+    let delegationCount = BigInt(0);
+    let amount = BigInt(0);
+
+    // Staking Address
+    let check = ethers.utils.isAddress(stkAddress);
+    if (!check) {
+      setErrorMessage('Address with funds not valid!');
+      return;
+    }
+
+    //Check Input
+    // Collator Address
+    check = ethers.utils.isAddress(colAddress);
+    if (!check) {
+      setErrorMessage('Collator address not valid!');
+      return;
+    }
+
+    // Check if you have a Schedule Request Against that Collator
+    const scheduledRequests = (
+      (await api.query.parachainStaking.delegationScheduledRequests(colAddress)) as any
+    ).toHuman();
+    console.log(scheduledRequests);
+    let isRequest;
+    scheduledRequests.map((request) => {
+      if (stkAddress == request.delegator) {
+        isRequest = true;
+      }
+    });
+    if (!isRequest) {
+      setErrorMessage('There is not request from this address to the specified collator!');
+      return;
+    }
+
+    // Create Staking Call
+    const stakingCall = await api.tx.parachainStaking.cancelDelegationRequest(colAddress);
+
+    setStakingCallData(stakingCall.method.toHex());
+
+    // Generate Proxy call
+    const proxyCall = await api.tx.proxy.proxy(stkAddress, null, stakingCall);
+
+    setProxyCallData(proxyCall.method.toHex());
+
+    // Set Calculated Data
+    setStakingCall({
+      targetNetwork: network.key,
+      stkOption,
+      colAddress,
+      stkAddress,
+      amount,
+      autoCompound,
+      candidateDelegationCount,
+      candidateAutoCompoundingDelegationCount,
+      delegationCount,
+      tokenLabel,
+    });
+  };
+
   const checkAddress = (account) => {
     if (ethers.utils.isAddress(account)) {
       return ethers.utils.getAddress(account);
@@ -628,13 +703,40 @@ const StakingBuilder = ({ network }) => {
     );
   };
 
+  const cancelForm = () => {
+    return (
+      <div className='executeInput'>
+        <Input
+          fluid
+          label={{ content: 'Account with Funds:' }}
+          placeholder='Address with the tokens...'
+          onChange={(input) => {
+            let address = checkAddress(input.target.value);
+            setStkAddress(address);
+          }}
+        />
+        <br />
+        <Input
+          fluid
+          label={{ content: 'Enter Collator Address:' }}
+          placeholder='Collator you want to execute request from...'
+          onChange={(input) => {
+            let address = checkAddress(input.target.value);
+            setColAddress(address);
+          }}
+        />
+        <br />
+      </div>
+    );
+  };
+
   return (
     <Container>
       <div style={{ width: '50%' }}>
         <h3>Staking Transaction</h3>
         <Form>
-          <Grid>
-            <GridColumn width={3}>
+          <Grid columns={6}>
+            <GridColumn>
               <Form.Field>
                 <Checkbox
                   radio
@@ -648,7 +750,7 @@ const StakingBuilder = ({ network }) => {
                 />
               </Form.Field>
             </GridColumn>
-            <GridColumn width={3}>
+            <GridColumn>
               <Form.Field>
                 <Checkbox
                   radio
@@ -663,7 +765,7 @@ const StakingBuilder = ({ network }) => {
                 />
               </Form.Field>
             </GridColumn>
-            <GridColumn width={3}>
+            <GridColumn>
               <Form.Field>
                 <Checkbox
                   radio
@@ -675,7 +777,7 @@ const StakingBuilder = ({ network }) => {
                 />
               </Form.Field>
             </GridColumn>
-            <GridColumn width={3}>
+            <GridColumn>
               <Form.Field>
                 <Checkbox
                   radio
@@ -687,7 +789,7 @@ const StakingBuilder = ({ network }) => {
                 />
               </Form.Field>
             </GridColumn>
-            <GridColumn width={3}>
+            <GridColumn>
               <Form.Field>
                 <Checkbox
                   radio
@@ -695,6 +797,18 @@ const StakingBuilder = ({ network }) => {
                   name='checkboxRadioGroup'
                   value='execute'
                   checked={stkOption === 'execute'}
+                  onChange={(e, data) => setStkOption(String(data.value))}
+                />
+              </Form.Field>
+            </GridColumn>
+            <GridColumn>
+              <Form.Field>
+                <Checkbox
+                  radio
+                  label='Cancel'
+                  name='checkboxRadioGroup'
+                  value='cancel'
+                  checked={stkOption === 'cancel'}
                   onChange={(e, data) => setStkOption(String(data.value))}
                 />
               </Form.Field>
@@ -712,6 +826,8 @@ const StakingBuilder = ({ network }) => {
           ? revokeForm()
           : stkOption == 'execute'
           ? executeForm()
+          : stkOption == 'cancel'
+          ? cancelForm()
           : ''}
       </div>
       <br />
