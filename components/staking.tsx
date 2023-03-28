@@ -75,7 +75,7 @@ const StakingBuilder = ({ network }) => {
     let balance = ((await api.query.system.account(stkAddress)) as any).toHuman().data;
     check =
       BigInt(balance.free.replaceAll(',', '')) -
-        BigInt(balance.miscFrozen.replaceAll(',', '')) -
+        BigInt(balance.feeFrozen.replaceAll(',', '')) -
         BigInt(100000000000000000) >
       BigInt(amount);
     if (!check) {
@@ -192,7 +192,7 @@ const StakingBuilder = ({ network }) => {
     let balance = ((await api.query.system.account(stkAddress)) as any).toHuman().data;
     check =
       BigInt(balance.free.replaceAll(',', '')) -
-        BigInt(balance.miscFrozen.replaceAll(',', '')) -
+        BigInt(balance.feeFrozen.replaceAll(',', '')) -
         BigInt(100000000000000000) >
       BigInt(amount);
     if (!check) {
