@@ -12,7 +12,7 @@ const networks = [
     value: 'moonbeam',
     image: { avatar: true, src: 'moonbeam.png' },
     token: 'GLMR',
-    url: 'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbeam.unitedbloc.com%3A3001',
+    url: 'wss://moonbeam.unitedbloc.com',
   },
   {
     key: 'Moonriver',
@@ -20,7 +20,7 @@ const networks = [
     value: 'moonriver',
     image: { avatar: true, src: 'moonriver.png' },
     token: 'MOVR',
-    url: 'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonriver.unitedbloc.com%3A2001',
+    url: 'wss://moonriver.unitedbloc.com',
   },
   {
     key: 'Moonbase Alpha',
@@ -28,7 +28,7 @@ const networks = [
     value: 'moonbase',
     image: { avatar: true, src: 'moonbase.png' },
     token: 'DEV',
-    url: 'https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fmoonbase.unitedbloc.com%3A1001',
+    url: 'wss://moonbase.unitedbloc.com',
   },
 ];
 

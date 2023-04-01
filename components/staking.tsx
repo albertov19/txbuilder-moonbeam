@@ -4,6 +4,7 @@ import { subProvider } from '../web3/api';
 import * as ethers from 'ethers';
 
 const StakingBuilder = ({ network }) => {
+  const polkadotJsApps = 'https://polkadot.js.org/apps/?rpc=';
   const [stkOption, setStkOption] = useState('stake');
   const [stkAddress, setStkAddress] = useState('');
   const [colAddress, setColAddress] = useState('');
@@ -27,16 +28,18 @@ const StakingBuilder = ({ network }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [tokenLabel, setTokenLabel] = useState(network.token);
   const [URL, setURL] = useState(network.url);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setTokenLabel(network.token);
   }, [network]);
 
   const calculate = async () => {
+    setLoading(true);
     setErrorMessage('');
 
     // Load Provider
-    const api = await subProvider(network.value);
+    const api = await subProvider(network.url);
     setTokenLabel(network.token);
     setURL(network.url);
 
@@ -53,6 +56,7 @@ const StakingBuilder = ({ network }) => {
     } else if (stkOption == 'cancel') {
       await calculateCancel(api);
     }
+    setLoading(false);
   };
 
   const calculateStake = async (api) => {
@@ -832,7 +836,7 @@ const StakingBuilder = ({ network }) => {
       </div>
       <br />
       <Form onSubmit={() => calculate()} error={!!errorMessage}>
-        <Button type='submit' color='orange'>
+        <Button type='submit' color='orange' loading={loading}>
           Calculate Data
         </Button>
         <Message style={{ width: '50%' }} error header='Oops!' content={errorMessage} />
@@ -841,13 +845,13 @@ const StakingBuilder = ({ network }) => {
       {stakingCallData && proxyCallData ? (
         <div>
           Staking Call URL:{' '}
-          <a href={URL + '#/extrinsics/decode/' + stakingCallData} target='_blank'>
+          <a href={polkadotJsApps + URL + '#/extrinsics/decode/' + stakingCallData} target='_blank'>
             {' '}
             Staking Polkadot.js Apps Moonbeam URL
           </a>
           <br />
           Proxy Call URL:{' '}
-          <a href={URL + '#/extrinsics/decode/' + proxyCallData} target='_blank'>
+          <a href={polkadotJsApps + URL + '#/extrinsics/decode/' + proxyCallData} target='_blank'>
             {' '}
             Proxy Polkadot.js Apps Moonbeam URL
           </a>

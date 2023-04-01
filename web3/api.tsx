@@ -1,22 +1,10 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 declare let ethereum: any;
 
-export async function subProvider(network) {
-  const chains = {
-    moonbase: {
-      ws: 'wss://moonbase-alpha.blastapi.io/1149fdef-ff34-48c0-9be4-7d81cb673a08',
-    },
-    moonriver: {
-      ws: 'wss://moonriver.blastapi.io/1149fdef-ff34-48c0-9be4-7d81cb673a08',
-    },
-    moonbeam: {
-      ws: 'wss://moonbeam.blastapi.io/1149fdef-ff34-48c0-9be4-7d81cb673a08',
-    },
-  };
-
+export async function subProvider(WsEndpoint) {
   if (typeof ethereum !== 'undefined') {
     // Create WS Provider
-    const wsProvider = new WsProvider(chains[network].ws);
+    const wsProvider = new WsProvider(WsEndpoint);
 
     // Wait for Provider
     const api = await ApiPromise.create({
